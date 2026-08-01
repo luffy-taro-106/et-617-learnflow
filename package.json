@@ -1,0 +1,28 @@
+{
+  "name": "learnflow",
+  "version": "1.0.0",
+  "description": "LearnFlow — an interactive learning platform with full clickstream analytics (ET-617 assignment).",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "seed": "node server/seed.js",
+    "dev": "node --watch server/index.js",
+    "reset": "node server/seed.js --force && node server/index.js"
+  },
+  "keywords": [
+    "learning",
+    "lms",
+    "clickstream",
+    "analytics",
+    "education",
+    "moodle"
+  ],
+  "author": "ET-617 Student",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2"
+  }
+}
