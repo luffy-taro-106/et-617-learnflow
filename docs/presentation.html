@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LearnFlow — Presentation</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171d2b; --ink:#e7ecf5; --muted:#9aa5b8;
+    --primary:#7c74ff; --accent:#c084fc; --border:#2a3345; --good:#34d399;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 800px at 70% -10%,#1e2440,transparent),var(--bg);
+    color:var(--ink); overflow:hidden;
+  }
+  .deck{height:100vh;display:grid;place-items:center}
+  .slide{
+    display:none; width:min(960px,92vw); height:min(620px,88vh);
+    background:linear-gradient(180deg,var(--panel),#12172200);
+    border:1px solid var(--border); border-radius:20px; padding:52px 60px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5); position:relative; overflow:auto;
+  }
+  .slide.active{display:block; animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem}
+  h1{font-size:3rem;line-height:1.1;margin:.2em 0}
+  h2{font-size:2rem;margin:.1em 0 .6em}
+  h3{font-size:1.15rem;color:var(--muted);font-weight:600}
+  p{color:var(--muted);font-size:1.05rem;line-height:1.6;margin:.5em 0}
+  ul{margin:.4em 0 .4em 1.1em;color:var(--ink)} li{margin:.5em 0;line-height:1.5}
+  .big{font-size:1.2rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .card{background:#1e2636;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+  .card b{color:var(--primary)}
+  .pill{display:inline-block;background:#232b3d;border:1px solid var(--border);color:var(--ink);
+    padding:6px 14px;border-radius:20px;font-size:.9rem;margin:4px 6px 0 0}
+  .center{display:flex;flex-direction:column;justify-content:center;height:100%}
+  .tag{color:var(--good);font-weight:700}
+  code{background:#0d1017;border:1px solid var(--border);padding:2px 8px;border-radius:6px;color:#c9d3e6;font-size:.92em}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .node{background:#1e2636;border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-weight:600;font-size:.95rem}
+  .arrow{color:var(--accent);font-size:1.4rem}
+  .foot{position:absolute;bottom:18px;left:60px;right:60px;display:flex;justify-content:space-between;
+    color:var(--muted);font-size:.82rem;border-top:1px solid var(--border);padding-top:10px}
+  .nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
+  .nav button{background:var(--panel);border:1px solid var(--border);color:var(--ink);
+    width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:1.1rem}
+  .nav button:hover{border-color:var(--primary)}
+  .count{position:fixed;top:16px;right:20px;color:var(--muted);font-size:.85rem}
+  .hint{position:fixed;bottom:20px;right:20px;color:var(--muted);font-size:.75rem}
+  table{border-collapse:collapse;width:100%;margin-top:12px;font-size:.9rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left}
+  th{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="count" id="count"></div>
+<div class="deck">
+
+  <!-- 1 TITLE -->
+  <section class="slide active center">
+    <div class="kicker">ET-617 · Assignment</div>
+    <h1>🎓 LearnFlow</h1>
+    <h3>An interactive learning platform that turns every learner<br/>interaction into <span style="color:var(--primary)">clickstream data</span>.</h3>
+    <div class="flow">
+      <span class="pill">📖 Text</span><span class="pill">🎬 Video</span><span class="pill">✅ Quizzes</span>
+      <span class="pill">🖱️ Clickstream tracking</span><span class="pill">📊 Analytics</span><span class="pill">⬇ CSV export</span>
+    </div>
+    <div class="foot"><span>LearnFlow</span><span>Node.js · Express · SQLite · Vanilla JS</span></div>
+  </section>
+
+  <!-- 2 PROBLEM -->
+  <section class="slide">
+    <div class="kicker">The brief</div>
+    <h2>What the assignment asked for</h2>
+    <ul class="big">
+      <li>A learning app where users <b>log in as learners</b></li>
+      <li>Interactive content: <b>text, video, quizzes</b> (or a combination)</li>
+      <li>Track <b>all user activity</b> — clicks, page views, video actions, quiz attempts…</li>
+      <li>Store that <b>clickstream data</b></li>
+      <li>A standalone web/mobile app, any stack, using <b>Git</b></li>
+    </ul>
+    <p>Reference data format: a <span class="tag">Moodle logstore</span> export
+      (Time · Event context · Component · Event name · Description · Origin · IP).</p>
+    <div class="foot"><span>The brief</span><span>2 / 9</span></div>
+  </section>
+
+  <!-- 3 SOLUTION -->
+  <section class="slide">
+    <div class="kicker">The solution</div>
+    <h2>LearnFlow at a glance</h2>
+    <div class="grid">
+      <div class="card"><b>Learners &amp; admins</b><p>Email + password auth (bcrypt, token sessions). Learners see their own data; admins see everyone's.</p></div>
+      <div class="card"><b>Three content types</b><p>Rich reading, HTML5 video with live event capture, and server-graded multiple-choice quizzes.</p></div>
+      <div class="card"><b>Full clickstream</b><p>Clicks, scroll depth, time-on-page, video play/pause/seek/progress, quiz start/answer/submit, auth.</p></div>
+      <div class="card"><b>Analytics + export</b><p>Live dashboard with charts and a raw log, plus one-click CSV in Moodle format.</p></div>
+    </div>
+    <div class="foot"><span>Solution</span><span>3 / 9</span></div>
+  </section>
+
+  <!-- 4 ARCHITECTURE -->
+  <section class="slide">
+    <div class="kicker">Architecture</div>
+    <h2>One process, no build step</h2>
+    <div class="flow">
+      <span class="node">🌐 Vanilla-JS SPA</span>
+      <span class="arrow">→</span>
+      <span class="node">tracker.js<br/><small style="color:var(--muted)">queue + sendBeacon</small></span>
+      <span class="arrow">→</span>
+      <span class="node">Express API<br/><small style="color:var(--muted)">/api/events</small></span>
+      <span class="arrow">→</span>
+      <span class="node">🗄️ SQLite<br/><small style="color:var(--muted)">events table</small></span>
+    </div>
+    <ul>
+      <li>Frontend loads plain <code>.js</code>/<code>.css</code> — runs with a single <code>npm start</code>.</li>
+      <li><b>better-sqlite3</b> — a real, indexed relational store with zero setup.</li>
+      <li>Login &amp; quiz-submit are logged <b>server-side</b> too, so the timeline can't be spoofed.</li>
+    </ul>
+    <div class="foot"><span>Architecture</span><span>4 / 9</span></div>
+  </section>
+
+  <!-- 5 CLICKSTREAM PIPELINE -->
+  <section class="slide">
+    <div class="kicker">The core</div>
+    <h2>How the clickstream flows</h2>
+    <ul>
+      <li><b>Capture</b> — <code>tracker.js</code> auto-records clicks, scroll &amp; time-on-page, and exposes <code>Tracker.log()</code> for semantic events.</li>
+      <li><b>Batch</b> — events queue up and flush every few seconds, or via <code>navigator.sendBeacon</code> on tab-hide (no lost tail events).</li>
+      <li><b>Enrich</b> — the server stamps the real IP + authenticated user id.</li>
+      <li><b>Store</b> — one indexed <code>events</code> row per interaction.</li>
+      <li><b>Read back</b> — aggregates, raw log, and CSV export (scoped per role).</li>
+    </ul>
+    <p class="tag">Every event carries both human-readable Moodle fields <i>and</i> machine fields (event_type, target_id, payload).</p>
+    <div class="foot"><span>Clickstream</span><span>5 / 9</span></div>
+  </section>
+
+  <!-- 6 EVENT CATALOGUE -->
+  <section class="slide">
+    <div class="kicker">Coverage</div>
+    <h2>What gets tracked</h2>
+    <table>
+      <tr><th>Component</th><th>Example events</th></tr>
+      <tr><td>Authentication</td><td>registered · logged in · logged out</td></tr>
+      <tr><td>System</td><td>Dashboard / Course / Analytics viewed</td></tr>
+      <tr><td>Lesson</td><td>Lesson viewed · marked complete</td></tr>
+      <tr><td>Video</td><td>played · paused · seeked · progress 25/50/75% · completed · volume · rate</td></tr>
+      <tr><td>Quiz</td><td>started · answer selected · attempt submitted</td></tr>
+      <tr><td>Interface</td><td>element clicked · scroll depth · time on page · theme changed</td></tr>
+    </table>
+    <div class="foot"><span>Event catalogue</span><span>6 / 9</span></div>
+  </section>
+
+  <!-- 7 DATA MODEL -->
+  <section class="slide">
+    <div class="kicker">Data</div>
+    <h2>The <code>events</code> table = the clickstream</h2>
+    <p>Moodle-style columns drive the CSV export; rich columns drive analytics.</p>
+    <div class="grid">
+      <div class="card"><b>Moodle columns</b>
+        <p>Time · Event context · Component · Event name · Description · Origin · IP address</p></div>
+      <div class="card"><b>Analytics columns</b>
+        <p>user_id · session_id · event_type · target_type · target_id · url · payload(JSON)</p></div>
+    </div>
+    <p>Related tables: <code>users</code>, <code>sessions</code>, <code>courses</code>,
+      <code>lessons</code>, <code>quiz_attempts</code>. Quiz answer keys are stripped before
+      reaching the browser; grading is server-side.</p>
+    <div class="foot"><span>Data model</span><span>7 / 9</span></div>
+  </section>
+
+  <!-- 8 DEMO -->
+  <section class="slide center">
+    <div class="kicker">Live demo</div>
+    <h2>Let's see it</h2>
+    <ul class="big">
+      <li>Log in → dashboard</li>
+      <li>Read a <b>text</b> lesson (scroll tracked)</li>
+      <li>Watch a <b>video</b> — play / pause / seek logged live</li>
+      <li>Take a <b>quiz</b> — instant colour-coded grading</li>
+      <li>Open <b>My Analytics</b> → charts + raw log → <b>Export CSV</b></li>
+    </ul>
+    <p><code>npm install &amp;&amp; npm run seed &amp;&amp; npm start</code> → <code>localhost:3000</code></p>
+    <div class="foot"><span>Demo</span><span>8 / 9</span></div>
+  </section>
+
+  <!-- 9 CLOSE -->
+  <section class="slide center">
+    <div class="kicker">Wrap-up</div>
+    <h2>Everything the brief asked — and then some</h2>
+    <div class="grid">
+      <div class="card"><b>✅ Delivered</b><p>Learner auth · text/video/quiz · full clickstream · storage · analytics · CSV · Git history · docs.</p></div>
+      <div class="card"><b>➕ Extra polish</b><p>Admin analytics scope · light/dark theme · offline videos · batched beacon tracking · Moodle-exact export.</p></div>
+    </div>
+    <p class="big">Repo includes <b>README</b>, <b>ARCHITECTURE.md</b>, this deck &amp; a demo-video script.</p>
+    <h1 style="font-size:2rem;margin-top:10px">Thank you 🎓</h1>
+    <div class="foot"><span>LearnFlow</span><span>9 / 9</span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)" aria-label="Previous">‹</button>
+  <button onclick="go(1)" aria-label="Next">›</button>
+</div>
+<div class="hint">← / → to navigate · F for fullscreen</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const count=document.getElementById('count');
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    count.textContent=(i+1)+' / '+slides.length;
+  }
+  function go(d){show(i+d)}
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' ')go(1);
+    else if(e.key==='ArrowLeft')go(-1);
+    else if(e.key==='Home')show(0);
+    else if(e.key==='End')show(slides.length-1);
+    else if(e.key.toLowerCase()==='f'){
+      if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+  show(0);
+</script>
+</body>
+</html>
