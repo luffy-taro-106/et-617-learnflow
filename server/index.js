@@ -26,6 +26,7 @@ const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const { buildWorkbook } = require('./xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -111,30 +112,30 @@ app.post('/api/auth/register', (req, res) => {
   const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
   if (exists) return res.status(409).json({ error: 'An account with that email already exists' });
 
+  const normEmail = email.toLowerCase().trim();
   const hash = bcrypt.hashSync(password, 10);
   const info = db
     .prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)')
-    .run(name, email.toLowerCase().trim(), hash, 'learner');
+    .run(name, normEmail, hash, 'learner');
 
-  const user = { id: info.lastInsertRowid, name, email: email.toLowerCase().trim(), role: 'learner' };
-  const token = newToken();
-  db.prepare('INSERT INTO sessions (token, user_id, ip, user_agent) VALUES (?, ?, ?, ?)').run(
-    token, user.id, clientIp(req), req.headers['user-agent'] || ''
-  );
+  const user = { id: info.lastInsertRowid, name, email: normEmail, role: 'learner' };
 
   recordEvent({
     user_id: user.id,
     time: new Date().toISOString(),
     component: 'Authentication',
     event_name: 'User registered',
-    description: `The user with id '${user.id}' created an account and logged in.`,
+    description: `The user with id '${user.id}' created a learner account.`,
     ip_address: clientIp(req),
     event_type: 'auth_register',
     target_type: 'user',
     target_id: user.id,
   });
 
-  res.json({ token, user });
+  // Deliberately NO token here: the learner must log in with their new
+  // credentials. This keeps auth explicit and makes "log in" the first
+  // authenticated event in every learner's timeline.
+  res.status(201).json({ ok: true, user });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -355,11 +356,18 @@ app.get('/api/analytics/summary', requireAuth, (req, res) => {
     ? db.prepare('SELECT COUNT(*) AS n FROM users WHERE role = ?').get('learner').n
     : 1;
 
+  // Study time = sum of every "time on page" measurement in the clickstream.
+  const timeWhere = s.where ? `${s.where} AND event_type = 'time_on_page'` : "WHERE event_type = 'time_on_page'";
+  const studySeconds = db
+    .prepare(`SELECT COALESCE(SUM(CAST(json_extract(payload, '$.seconds') AS INTEGER)), 0) AS s FROM events ${timeWhere}`)
+    .get(...s.args).s;
+
   res.json({
     scope: req.user.role === 'admin' ? 'all' : 'self',
     totals: {
       events: total,
       learners,
+      studySeconds,
       quizAttempts: quiz.attempts,
       quizAccuracy: quiz.total_max ? Math.round((quiz.total_score / quiz.total_max) * 100) : null,
     },
@@ -384,35 +392,73 @@ app.get('/api/analytics/events', requireAuth, (req, res) => {
   res.json({ events: rows });
 });
 
-// CSV export in the exact Moodle logstore column order from the reference sheet.
-app.get('/api/analytics/export.csv', requireAuth, (req, res) => {
+// --------------------------------------------------------- clickstream export
+// The clickstream is stored in the SQLite `events` table (data/learnflow.db).
+// It can be downloaded in three formats, all in the exact Moodle logstore
+// column order from the reference sheet. Learners get their own rows; admins
+// get everyone's. Downloads are authenticated (the client fetches with the
+// bearer token and saves the blob), so these links can't leak another user's data.
+const EXPORT_HEADERS = ['Time', 'User full name', 'Event context', 'Component', 'Event name', 'Description', 'Origin', 'IP address'];
+
+function exportRows(req) {
   const s = scope(req);
-  const rows = db
+  return db
     .prepare(
       `SELECT e.time, e.event_context, e.component, e.event_name, e.description,
-              e.origin, e.ip_address, u.name AS user_name
+              e.origin, e.ip_address, e.event_type, e.url, u.name AS user_name
          FROM events e LEFT JOIN users u ON u.id = e.user_id
          ${s.where.replace('user_id', 'e.user_id')}
         ORDER BY e.id DESC`
     )
     .all(...s.args);
+}
 
-  const headers = ['Time', 'User full name', 'Event context', 'Component', 'Event name', 'Description', 'Origin', 'IP address'];
+function moodleRow(r) {
+  return [
+    r.time, r.user_name || '', r.event_context || '', r.component || '',
+    r.event_name || '', r.description || '', r.origin || '', r.ip_address || '',
+  ];
+}
+
+// CSV — opens directly in Excel / Google Sheets / any spreadsheet tool.
+app.get('/api/analytics/export.csv', requireAuth, (req, res) => {
   const esc = (v) => {
     const str = v == null ? '' : String(v);
     return /[",\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
   };
-  const lines = [headers.join(',')];
-  for (const r of rows) {
-    lines.push([
-      r.time, r.user_name || '', r.event_context || '', r.component || '',
-      r.event_name || '', r.description || '', r.origin || '', r.ip_address || '',
-    ].map(esc).join(','));
-  }
-
+  const lines = [EXPORT_HEADERS.join(',')];
+  for (const r of exportRows(req)) lines.push(moodleRow(r).map(esc).join(','));
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="learnflow-clickstream.csv"');
   res.send(lines.join('\n'));
+});
+
+// Excel — a genuine .xlsx workbook (built with zero external dependencies).
+app.get('/api/analytics/export.xlsx', requireAuth, (req, res) => {
+  const rows = exportRows(req).map(moodleRow);
+  const buf = buildWorkbook('Clickstream', EXPORT_HEADERS, rows);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename="learnflow-clickstream.xlsx"');
+  res.send(buf);
+});
+
+// JSON — the full structured clickstream, including machine-readable fields.
+app.get('/api/analytics/export.json', requireAuth, (req, res) => {
+  const events = exportRows(req).map((r) => ({
+    time: r.time,
+    user_full_name: r.user_name || '',
+    event_context: r.event_context || '',
+    component: r.component || '',
+    event_name: r.event_name || '',
+    description: r.description || '',
+    origin: r.origin || '',
+    ip_address: r.ip_address || '',
+    event_type: r.event_type || '',
+    url: r.url || '',
+  }));
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="learnflow-clickstream.json"');
+  res.send(JSON.stringify({ exported_at: new Date().toISOString(), count: events.length, events }, null, 2));
 });
 
 // SPA fallback: any non-API route serves the app shell.
