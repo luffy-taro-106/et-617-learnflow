@@ -226,6 +226,73 @@ code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-
 .toast-info { background: var(--primary); color: #fff; }
 @keyframes rise { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
+/* ------------------------------------------------------- study timer pill */
+.study-timer {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 13px; font-size: 0.82rem; font-weight: 700;
+  color: var(--text); font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.timer-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--success);
+  box-shadow: 0 0 0 0 rgba(18, 183, 106, 0.6); animation: pulse 1.8s ease-out infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(18, 183, 106, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(18, 183, 106, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(18, 183, 106, 0); }
+}
+
+/* ------------------------------------------------- dashboard progress hero */
+.dash-hero {
+  display: flex; align-items: center; gap: 24px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px 26px; box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.dash-hero-ring { flex: none; }
+.dash-hero-info h2 { margin-bottom: 4px; }
+.dash-hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.metric {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; color: var(--muted);
+}
+.metric-primary { background: var(--primary-tint); color: var(--primary); border-color: transparent; }
+.metric-link { color: var(--primary); }
+.metric-link:hover { text-decoration: none; background: var(--primary-tint); border-color: transparent; }
+
+/* progress ring (SVG) */
+.ring-bg { stroke: var(--surface-2); }
+.ring-fg { stroke: var(--primary); transition: stroke-dashoffset 0.6s ease; }
+.ring-text { fill: var(--text); font-size: 1.05rem; font-weight: 800; }
+
+/* ------------------------------------------------------- export dropdown */
+.export-menu { position: relative; }
+.export-dropdown {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow); padding: 6px; min-width: 190px; display: grid; gap: 2px;
+}
+.export-dropdown button {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: transparent; border: 0; border-radius: 7px; padding: 10px 12px;
+  font-size: 0.9rem; font-weight: 600; color: var(--text); cursor: pointer;
+}
+.export-dropdown button:hover { background: var(--surface-2); }
+.export-dropdown button small { margin-left: auto; color: var(--muted); font-weight: 500; }
+
+/* ------------------------------------------------------------- error card */
+.error-card {
+  max-width: 460px; margin: 60px auto; text-align: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 40px 30px; box-shadow: var(--shadow);
+}
+.error-emoji { font-size: 3rem; margin-bottom: 8px; }
+.error-card h2 { margin-bottom: 8px; }
+.error-card .btn { margin-top: 18px; }
+
 /* ------------------------------------------------------------- responsive */
 @media (max-width: 860px) {
   .auth-wrap { grid-template-columns: 1fr; }
@@ -234,4 +301,9 @@ code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-
   .nav { display: none; }
   .hbar-row { grid-template-columns: 110px 1fr 34px; }
   .user-meta { display: none; }
+  .dash-hero { flex-direction: column; text-align: center; }
+  .dash-hero-meta { justify-content: center; }
+}
+@media (max-width: 560px) {
+  .study-timer { display: none; }
 }

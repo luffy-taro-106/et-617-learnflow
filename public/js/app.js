@@ -33,6 +33,56 @@
     else localStorage.removeItem('lf_token');
   }
 
+  // ------------------------------------------------------- study timer
+  // A live, ticking "time in this learning session" clock in the top bar.
+  // The start time is kept in sessionStorage so it survives page reloads
+  // within the same browser session (and resets cleanly on logout).
+  const TIMER_KEY = 'lf_timer_start';
+  let timerInterval = null;
+  function fmtDuration(totalSec) {
+    totalSec = Math.max(0, Math.floor(totalSec));
+    const s = totalSec % 60, m = Math.floor(totalSec / 60) % 60, hh = Math.floor(totalSec / 3600);
+    const pad = (n) => String(n).padStart(2, '0');
+    return hh > 0 ? `${hh}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  }
+  function startTimer() {
+    let start = Number(sessionStorage.getItem(TIMER_KEY));
+    if (!start) { start = Date.now(); sessionStorage.setItem(TIMER_KEY, String(start)); }
+    const tick = () => {
+      const el = document.getElementById('studyTimerVal');
+      if (el) el.textContent = fmtDuration((Date.now() - start) / 1000);
+    };
+    tick();
+    if (!timerInterval) timerInterval = setInterval(tick, 1000);
+  }
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    sessionStorage.removeItem(TIMER_KEY);
+  }
+
+  // ------------------------------------------------------- error screen
+  // Shown when a screen fails to load (e.g. the server is unreachable) so the
+  // user gets a friendly, retryable message instead of a raw "Failed to fetch".
+  function renderErrorScreen(err) {
+    const isNetwork =
+      err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(err.message || '');
+    appEl.innerHTML = h`
+      <div class="container">
+        <div class="error-card">
+          <div class="error-emoji">${isNetwork ? '📡' : '⚠️'}</div>
+          <h2>${isNetwork ? "Can't reach the server" : 'Something went wrong'}</h2>
+          <p class="muted">${
+            isNetwork
+              ? 'The connection to LearnFlow dropped. Make sure the server is running (npm start), then try again.'
+              : esc(err.message)
+          }</p>
+          <button class="btn btn-primary" id="retryBtn" data-track-label="retry">↻ Retry</button>
+        </div>
+      </div>`;
+    const btn = document.getElementById('retryBtn');
+    if (btn) btn.addEventListener('click', () => route());
+  }
+
   // ------------------------------------------------------------- theme
   const themeToggle = document.getElementById('themeToggle');
   function applyTheme(theme) {
@@ -54,6 +104,7 @@
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try { await API.logout(); } catch (_) {}
     Tracker.flush(false);
+    stopTimer();
     setToken(null);
     user = null;
     navigate('#/login');
@@ -62,6 +113,7 @@
   function renderTopbar() {
     if (!user) { topbar.classList.add('hidden'); return; }
     topbar.classList.remove('hidden');
+    startTimer();
     const chip = document.getElementById('userChip');
     chip.innerHTML = h`<span class="avatar">${esc(user.name[0].toUpperCase())}</span>
       <span class="user-meta"><strong>${esc(user.name)}</strong><small>${esc(user.role)}</small></span>`;
@@ -106,21 +158,21 @@
             <label>Full name<input type="text" name="name" placeholder="Ada Lovelace" required /></label>
             <label>Email<input type="email" name="email" placeholder="you@example.com" required /></label>
             <label>Password<input type="password" name="password" placeholder="min 6 characters" required /></label>
-            <button class="btn btn-primary btn-block" type="submit">Create account &amp; start</button>
+            <button class="btn btn-primary btn-block" type="submit">Create account</button>
+            <p class="hint">After creating your account you'll log in with your new credentials.</p>
           </form>
         </div>
       </div>`;
 
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
+    function showAuthTab(name) {
+      appEl.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+      loginForm.classList.toggle('hidden', name !== 'login');
+      registerForm.classList.toggle('hidden', name !== 'register');
+    }
     appEl.querySelectorAll('.tab').forEach((tab) =>
-      tab.addEventListener('click', () => {
-        appEl.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-        tab.classList.add('active');
-        const isLogin = tab.dataset.tab === 'login';
-        loginForm.classList.toggle('hidden', !isLogin);
-        registerForm.classList.toggle('hidden', isLogin);
-      })
+      tab.addEventListener('click', () => showAuthTab(tab.dataset.tab))
     );
 
     loginForm.addEventListener('submit', async (e) => {
@@ -138,12 +190,33 @@
       e.preventDefault();
       const f = new FormData(registerForm);
       try {
-        const { token, user: u } = await API.register(f.get('name'), f.get('email'), f.get('password'));
-        setToken(token); user = u;
-        toast(`Account created — welcome, ${u.name.split(' ')[0]}!`, 'success');
-        navigate('#/dashboard');
+        const { user: u } = await API.register(f.get('name'), f.get('email'), f.get('password'));
+        // No auto-login: send the learner to the login tab to sign in.
+        toast(`Account created! Please log in to continue, ${u.name.split(' ')[0]}.`, 'success');
+        showAuthTab('login');
+        loginForm.querySelector('input[name="email"]').value = u.email;
+        const pw = loginForm.querySelector('input[name="password"]');
+        pw.value = '';
+        pw.focus();
+        registerForm.reset();
       } catch (err) { toast(err.message, 'error'); }
     });
+  }
+
+  // A circular SVG progress ring (0–100) used on the dashboard.
+  function progressRing(pct) {
+    const r = 34;
+    const c = 2 * Math.PI * r;
+    const clamped = Math.max(0, Math.min(100, pct));
+    const off = c * (1 - clamped / 100);
+    return h`
+      <svg class="ring" viewBox="0 0 80 80" width="88" height="88" role="img" aria-label="${clamped}% complete">
+        <circle class="ring-bg" cx="40" cy="40" r="${r}" fill="none" stroke-width="8" />
+        <circle class="ring-fg" cx="40" cy="40" r="${r}" fill="none" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+                transform="rotate(-90 40 40)" />
+        <text x="40" y="40" class="ring-text" text-anchor="middle" dominant-baseline="central">${clamped}%</text>
+      </svg>`;
   }
 
   // ============================================================ DASHBOARD
@@ -156,6 +229,13 @@
     const [{ courses }, progress] = await Promise.all([API.courses(), API.progress()]);
     const viewed = new Set(progress.viewedLessonIds);
     const attemptByLesson = Object.fromEntries(progress.attempts.map((a) => [a.lesson_id, a]));
+
+    // Overall progress across every course (for the dashboard ring).
+    const totalLessons = courses.reduce((n, c) => n + c.lessons.length, 0);
+    const doneLessons = courses.reduce(
+      (n, c) => n + c.lessons.filter((l) => viewed.has(l.id) || attemptByLesson[l.id]).length, 0
+    );
+    const overallPct = totalLessons ? Math.round((doneLessons / totalLessons) * 100) : 0;
 
     const cards = courses.map((c) => {
       const done = c.lessons.filter((l) => viewed.has(l.id) || attemptByLesson[l.id]).length;
@@ -176,13 +256,25 @@
         </a>`;
     }).join('');
 
+    const doneMsg = overallPct === 100
+      ? 'Every lesson complete — nice work! 🎉'
+      : overallPct === 0
+        ? 'Pick a course below to begin your first lesson.'
+        : 'Keep going — pick up where you left off.';
+
     appEl.innerHTML = h`
       <div class="container">
-        <div class="page-head">
-          <div>
+        <div class="dash-hero">
+          <div class="dash-hero-ring">${progressRing(overallPct)}</div>
+          <div class="dash-hero-info">
             <h2>Welcome back, ${esc(user.name.split(' ')[0])} 👋</h2>
-            <p class="muted">Pick a course to continue. Everything you do here is tracked in
-              <a href="#/analytics">your analytics</a>.</p>
+            <p class="muted">You've completed <b>${doneLessons}</b> of <b>${totalLessons}</b> lessons
+              across ${courses.length} ${courses.length === 1 ? 'course' : 'courses'}. ${doneMsg}</p>
+            <div class="dash-hero-meta">
+              <span class="metric metric-primary">📈 ${overallPct}% overall</span>
+              <span class="metric">⏱ Session time is ticking up top</span>
+              <a class="metric metric-link" href="#/analytics" data-track-label="hero-analytics">📊 View my analytics →</a>
+            </div>
           </div>
         </div>
         <div class="grid">${cards}</div>
@@ -429,6 +521,31 @@
     toast(result.passed ? 'Quiz passed!' : `Scored ${result.score}/${result.maxScore}`, result.passed ? 'success' : 'info');
   }
 
+  // Download the clickstream in a chosen format via an authenticated fetch
+  // (so the bearer token is sent) → object URL → save. Works for csv/xlsx/json.
+  async function downloadExport(format) {
+    const names = { csv: 'CSV', xlsx: 'Excel', json: 'JSON' };
+    try {
+      toast(`Preparing ${names[format]} download…`, 'info');
+      const blob = await API.exportBlob(format);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `learnflow-clickstream.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      Tracker.log({
+        component: 'System', event_name: 'Clickstream exported', event_type: 'export',
+        description: `The user exported their clickstream as ${names[format]}.`, payload: { format },
+      });
+      toast(`${names[format]} downloaded ✓`, 'success');
+    } catch (err) {
+      toast(err.message || 'Export failed', 'error');
+    }
+  }
+
   // ============================================================ ANALYTICS
   async function renderAnalytics() {
     Tracker.setContext({ event_context: 'Analytics', target_type: 'route', target_id: null });
@@ -480,11 +597,19 @@
             <p class="muted">${isAdmin ? 'Aggregated clickstream across every learner.' : 'A live view of your own clickstream data.'}
               Data updates as you use the app.</p>
           </div>
-          <a class="btn btn-primary" href="${API.exportUrl()}" download data-track-label="export-csv">⬇ Export CSV (Moodle format)</a>
+          <div class="export-menu">
+            <button class="btn btn-primary" id="exportBtn" aria-haspopup="true" aria-expanded="false" data-track-label="export-toggle">⬇ Export ▾</button>
+            <div class="export-dropdown hidden" id="exportDropdown" role="menu">
+              <button data-fmt="csv" data-track-label="export-csv">📄 CSV <small>.csv</small></button>
+              <button data-fmt="xlsx" data-track-label="export-xlsx">📊 Excel <small>.xlsx</small></button>
+              <button data-fmt="json" data-track-label="export-json">🧾 JSON <small>.json</small></button>
+            </div>
+          </div>
         </div>
 
         <div class="stat-grid">
           ${stat('Total events', summary.totals.events)}
+          ${stat('Study time', fmtDuration(summary.totals.studySeconds || 0), 'measured from your clickstream')}
           ${isAdmin ? stat('Learners', summary.totals.learners) : stat('Session', 'live', Tracker.sessionId.slice(0, 8))}
           ${stat('Quiz attempts', summary.totals.quizAttempts)}
           ${stat('Quiz accuracy', summary.totals.quizAccuracy != null ? summary.totals.quizAccuracy + '%' : '—')}
@@ -509,7 +634,7 @@
         <div class="panel">
           <div class="panel-head">
             <h3>Raw clickstream log <span class="muted">(latest ${eventsData.events.length})</span></h3>
-            <span class="muted">Same columns as the reference Moodle export.</span>
+            <span class="muted">Stored in SQLite → <code>data/learnflow.db</code> (<code>events</code> table). Same columns as the reference Moodle export.</span>
           </div>
           <div class="table-scroll">
             <table class="log-table">
@@ -522,6 +647,44 @@
           </div>
         </div>
       </div>`;
+
+    // Wire the export dropdown (CSV / Excel / JSON). The outside-click / Escape
+    // handlers are attached only while the menu is open and removed on close,
+    // so re-rendering this screen never leaks document listeners.
+    const exportBtn = document.getElementById('exportBtn');
+    const dropdown = document.getElementById('exportDropdown');
+    if (exportBtn && dropdown) {
+      let onOutside = null;
+      const closeMenu = () => {
+        dropdown.classList.add('hidden');
+        exportBtn.setAttribute('aria-expanded', 'false');
+        if (onOutside) {
+          document.removeEventListener('click', onOutside);
+          document.removeEventListener('keydown', onOutside);
+          onOutside = null;
+        }
+      };
+      const openMenu = () => {
+        dropdown.classList.remove('hidden');
+        exportBtn.setAttribute('aria-expanded', 'true');
+        onOutside = (ev) => {
+          if (ev.type === 'keydown') { if (ev.key === 'Escape') closeMenu(); return; }
+          if (!dropdown.contains(ev.target) && ev.target !== exportBtn) closeMenu();
+        };
+        setTimeout(() => {
+          document.addEventListener('click', onOutside);
+          document.addEventListener('keydown', onOutside);
+        }, 0);
+      };
+      exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.contains('hidden') ? openMenu() : closeMenu();
+      });
+      dropdown.querySelectorAll('button[data-fmt]').forEach((b) =>
+        b.addEventListener('click', () => { closeMenu(); downloadExport(b.dataset.fmt); })
+      );
+    }
+
     renderTopbar();
   }
 
@@ -560,7 +723,7 @@
     catch (err) {
       console.error(err);
       if (err.status === 401) { setToken(null); user = null; navigate('#/login'); }
-      else appEl.innerHTML = `<div class="container"><p>Something went wrong: ${esc(err.message)}</p></div>`;
+      else renderErrorScreen(err);
     }
     renderTopbar();
   }

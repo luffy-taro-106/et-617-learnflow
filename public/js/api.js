@@ -48,6 +48,18 @@
     // analytics
     analyticsSummary: () => request('GET', '/api/analytics/summary'),
     analyticsEvents: (limit = 100) => request('GET', '/api/analytics/events?limit=' + limit),
-    exportUrl: () => '/api/analytics/export.csv',
+    // Export the clickstream as a downloadable blob. Uses the auth header
+    // (a plain <a download> can't send it), so exports respect the user's scope.
+    exportBlob: async (format) => {
+      const headers = {};
+      if (token()) headers.Authorization = 'Bearer ' + token();
+      const res = await fetch('/api/analytics/export.' + format, { headers });
+      if (!res.ok) {
+        let msg = `Export failed (${res.status})`;
+        try { const j = await res.json(); if (j && j.error) msg = j.error; } catch (_) {}
+        const err = new Error(msg); err.status = res.status; throw err;
+      }
+      return res.blob();
+    },
   };
 })();
