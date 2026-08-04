@@ -59,14 +59,18 @@ You can also **create your own learner account** from the login screen.
 
 ## 🧭 Using the app
 
-1. **Log in** (demo credentials are pre-filled) → you land on the **course dashboard**.
+1. **Create an account** (or use the pre-filled demo login). New sign-ups are sent
+   back to the **log-in** screen to sign in with their new credentials — no silent
+   auto-login. Once logged in you land on the **course dashboard**, which shows an
+   **overall progress ring** and a **live study-session timer** (top bar).
 2. Open a course → pick a lesson:
    - 📖 **Reading** — scroll through, hit *Mark as read*.
    - 🎬 **Video** — play / pause / scrub. Watch the live "video events" panel fill up.
    - ✅ **Quiz** — answer the questions and submit for instant, colour-coded grading.
-3. Click **My Analytics** to see your clickstream come alive: totals, an activity
-   timeline, a breakdown by component and event type, and the **raw log table**.
-4. Hit **⬇ Export CSV** to download your clickstream in Moodle format.
+3. Click **My Analytics** to see your clickstream come alive: totals, **study time**,
+   an activity timeline, a breakdown by component and event type, and the **raw log table**.
+4. Hit **⬇ Export ▾** to download your clickstream as **CSV, Excel (.xlsx) or JSON**
+   (Moodle column order). Downloads are authenticated, so you only ever export your own data.
 
 Everything you click, watch and answer appears in Analytics **in real time**.
 
@@ -88,8 +92,9 @@ Every event is stored with the Moodle columns **and** machine-readable fields
 | Quiz | Quiz started / answer selected / attempt submitted | `quiz_start`, `quiz_answer`, `quiz_submit` | Taking a quiz |
 | Interface | Element clicked | `click` | Global click capture on any button/link/card/option |
 | Interface | Page scrolled (25/50/75/100%) | `scroll_depth` | Scroll milestones |
-| Interface | Time on page | `time_on_page` | Measured per screen, flushed on navigation/hide |
+| Interface | Time on page | `time_on_page` | Measured per screen, flushed on navigation/hide (also powers **Study time**) |
 | Interface | Theme changed | `theme_toggle` | Light/dark switch |
+| System | Clickstream exported | `export` | Downloading the log as CSV / Excel / JSON |
 
 ### How tracking works (client → server)
 
@@ -131,9 +136,10 @@ The **`events`** table (the clickstream) — Moodle columns in **bold**:
 | url, payload | Client route + JSON detail (e.g. `{ "percent": 50 }`) |
 | created_at | Server insert time |
 
-A ready-made **CSV export** (`/api/analytics/export.csv`) emits exactly the reference
-sheet's columns: `Time, User full name, Event context, Component, Event name, Description,
-Origin, IP address`.
+Ready-made exports (`/api/analytics/export.csv`, `.xlsx`, `.json`) emit exactly the
+reference sheet's columns: `Time, User full name, Event context, Component, Event name,
+Description, Origin, IP address`. The Excel workbook is built with **zero external
+dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
 
 ---
 
@@ -141,7 +147,7 @@ Origin, IP address`.
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/api/auth/register` | — | Create a learner account |
+| POST | `/api/auth/register` | — | Create a learner account (returns the user; **no token — log in next**) |
 | POST | `/api/auth/login` | — | Log in → `{ token, user }` |
 | POST | `/api/auth/logout` | ✅ | Invalidate session |
 | GET | `/api/me` | ✅ | Current user |
@@ -154,6 +160,8 @@ Origin, IP address`.
 | GET | `/api/analytics/summary` | ✅ | Aggregates (self, or all if admin) |
 | GET | `/api/analytics/events` | ✅ | Recent raw events |
 | GET | `/api/analytics/export.csv` | ✅ | Moodle-format CSV download |
+| GET | `/api/analytics/export.xlsx` | ✅ | Moodle-format Excel (.xlsx) download |
+| GET | `/api/analytics/export.json` | ✅ | Full clickstream as structured JSON |
 
 ---
 
@@ -164,7 +172,8 @@ Origin, IP address`.
 ├── server/
 │   ├── db.js          # SQLite connection + schema (incl. events table)
 │   ├── seed.js        # demo users + course/lesson content
-│   └── index.js       # Express app: auth, content, quiz, clickstream, analytics
+│   ├── xlsx.js        # zero-dependency .xlsx (Excel) writer
+│   └── index.js       # Express app: auth, content, quiz, clickstream, analytics, exports
 ├── public/
 │   ├── index.html     # SPA shell
 │   ├── css/styles.css # hand-written responsive light/dark theme
