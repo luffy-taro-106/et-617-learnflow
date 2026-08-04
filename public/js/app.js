@@ -213,8 +213,9 @@
       <svg class="ring" viewBox="0 0 80 80" width="88" height="88" role="img" aria-label="${clamped}% complete">
         <defs>
           <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#6d5efc" />
-            <stop offset="100%" stop-color="#d45cff" />
+            <stop offset="0%" stop-color="#fb7185" />
+            <stop offset="55%" stop-color="#f97316" />
+            <stop offset="100%" stop-color="#f59e0b" />
           </linearGradient>
         </defs>
         <circle class="ring-bg" cx="40" cy="40" r="${r}" fill="none" stroke-width="8" />
