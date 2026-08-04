@@ -18,6 +18,9 @@ const force = process.argv.includes('--force');
 if (force) {
   console.log('⚠  --force: clearing courses, lessons, attempts, events...');
   db.exec(`DELETE FROM events; DELETE FROM quiz_attempts; DELETE FROM lessons; DELETE FROM courses;`);
+  // Reset AUTOINCREMENT counters so a fresh seed restarts ids at 1
+  // (keeps lesson URLs tidy, e.g. #/lesson/1 instead of #/lesson/19 after re-seeding).
+  db.exec(`DELETE FROM sqlite_sequence WHERE name IN ('events','quiz_attempts','lessons','courses');`);
 }
 
 // ---------------------------------------------------------------- users
