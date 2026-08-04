@@ -184,11 +184,16 @@ Origin, IP address`.
 
 ---
 
-## 🎥 Deliverables
+## 🎥 Deliverables & submission
 
-- **Code + README** — this repository.
+| Deliverable | Where |
+|---|---|
+| **GitHub repo (+ README)** | <https://github.com/luffy-taro-106/et-617-learnflow> |
+| **Demo video** | _Add your recording link here_ — record by following [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) (a 2–3 minute walkthrough). |
+| **Presentation** | [`docs/presentation.html`](docs/presentation.html) — open in any browser (arrow keys / `F` for fullscreen) or print to PDF. |
+
 - **Demo video** — follow [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) (a 2–3 minute
-  walkthrough script) while screen-recording the running app.
+  walkthrough script) while screen-recording the running app, then paste the share link above.
 - **Presentation** — open [`docs/presentation.html`](docs/presentation.html) in any
   browser (use arrow keys / `F` for fullscreen) or print it to PDF.
 
