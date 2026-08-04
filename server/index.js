@@ -15,10 +15,14 @@
  *  POST /api/quiz/:lessonId/submit grade a quiz attempt, store it, log event
  *  GET  /api/progress              learner's per-lesson progress + attempts
  *
- *  POST /api/events                ingest a BATCH of clickstream events
- *  GET  /api/analytics/summary     aggregate analytics (self, or all if admin)
- *  GET  /api/analytics/events      recent raw events (self, or all if admin)
- *  GET  /api/analytics/export.csv  Moodle-format CSV of the clickstream
+ *  POST /api/ingest                ingest a BATCH of clickstream events
+ *  GET  /api/insights/summary      aggregate analytics (self, or all if admin)
+ *  GET  /api/insights/events       recent raw events (self, or all if admin)
+ *  GET  /api/insights/export.csv   Moodle-format CSV of the clickstream (+ .xlsx / .json)
+ *
+ *  NB: these use neutral paths (/api/ingest, /api/insights) instead of
+ *  /api/events or /api/analytics so browser ad-blockers / privacy extensions
+ *  don't block them (they filter URLs containing "analytics"/"events").
  */
 
 const path = require('path');
@@ -78,7 +82,7 @@ const insertEvent = db.prepare(`
 `);
 
 /**
- * Record one clickstream event. Called both by the /api/events ingest route
+ * Record one clickstream event. Called both by the /api/ingest ingest route
  * (client-side events) and by server-side actions (login, quiz submit) so the
  * log is a single unified timeline.
  */
@@ -286,7 +290,7 @@ app.get('/api/progress', requireAuth, (req, res) => {
 });
 
 // ============================================================ CLICKSTREAM
-app.post('/api/events', (req, res) => {
+app.post('/api/ingest', (req, res) => {
   const user = userFromToken(req); // events may be anonymous (e.g. on login page)
   const list = Array.isArray(req.body && req.body.events) ? req.body.events : [];
   if (!list.length) return res.json({ stored: 0 });
@@ -322,7 +326,7 @@ function scope(req) {
   return req.user.role === 'admin' ? { where: '', args: [] } : { where: 'WHERE user_id = ?', args: [req.user.id] };
 }
 
-app.get('/api/analytics/summary', requireAuth, (req, res) => {
+app.get('/api/insights/summary', requireAuth, (req, res) => {
   const s = scope(req);
   const total = db.prepare(`SELECT COUNT(*) AS n FROM events ${s.where}`).get(...s.args).n;
 
@@ -377,7 +381,7 @@ app.get('/api/analytics/summary', requireAuth, (req, res) => {
   });
 });
 
-app.get('/api/analytics/events', requireAuth, (req, res) => {
+app.get('/api/insights/events', requireAuth, (req, res) => {
   const s = scope(req);
   const limit = Math.min(parseInt(req.query.limit, 10) || 100, 1000);
   const rows = db
@@ -421,7 +425,7 @@ function moodleRow(r) {
 }
 
 // CSV — opens directly in Excel / Google Sheets / any spreadsheet tool.
-app.get('/api/analytics/export.csv', requireAuth, (req, res) => {
+app.get('/api/insights/export.csv', requireAuth, (req, res) => {
   const esc = (v) => {
     const str = v == null ? '' : String(v);
     return /[",\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
@@ -434,7 +438,7 @@ app.get('/api/analytics/export.csv', requireAuth, (req, res) => {
 });
 
 // Excel — a genuine .xlsx workbook (built with zero external dependencies).
-app.get('/api/analytics/export.xlsx', requireAuth, (req, res) => {
+app.get('/api/insights/export.xlsx', requireAuth, (req, res) => {
   const rows = exportRows(req).map(moodleRow);
   const buf = buildWorkbook('Clickstream', EXPORT_HEADERS, rows);
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -443,7 +447,7 @@ app.get('/api/analytics/export.xlsx', requireAuth, (req, res) => {
 });
 
 // JSON — the full structured clickstream, including machine-readable fields.
-app.get('/api/analytics/export.json', requireAuth, (req, res) => {
+app.get('/api/insights/export.json', requireAuth, (req, res) => {
   const events = exportRows(req).map((r) => ({
     time: r.time,
     user_full_name: r.user_name || '',

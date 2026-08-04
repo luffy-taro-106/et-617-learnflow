@@ -24,7 +24,7 @@ flowchart LR
 
   DB[("🗄️ SQLite\nusers · courses · lessons\nquiz_attempts · events")]
 
-  TR -- "POST /api/events (batched)\n+ sendBeacon on hide" --> API
+  TR -- "POST /api/ingest (batched)\n+ sendBeacon on hide" --> API
   UI -- "auth / content / quiz / analytics" --> API
   REC --> DB
   API -- "JSON / CSV" --> UI
@@ -52,7 +52,7 @@ flowchart LR
    - **scroll depth** (25/50/75/100% milestones, once each),
    - **time-on-page** (measured between route changes and on tab-hide).
 4. **Reliable delivery** — events are pushed to an in-memory **queue** and flushed to
-   `POST /api/events`:
+   `POST /api/ingest`:
    - in **batches** every few seconds or when the queue hits 25 events,
    - immediately via **`navigator.sendBeacon`** on `visibilitychange`/`pagehide`, so the
      final events survive a tab close,
@@ -60,7 +60,7 @@ flowchart LR
 
 ### 2.2 Ingest & enrich (server)
 
-`POST /api/events` accepts `{ events: [...] }`. For each event the server:
+`POST /api/ingest` accepts `{ events: [...] }`. For each event the server:
 
 - resolves the **authenticated user** from the bearer token (events may also be anonymous,
   e.g. on the login screen),
@@ -78,11 +78,14 @@ analytics queries fast.
 
 ### 2.4 Read back
 
-- **`/api/analytics/summary`** — aggregates: totals, events-per-day, counts by
+- **`/api/insights/summary`** — aggregates: totals, study time, events-per-day, counts by
   `event_name` and by `component`, quiz stats.
-- **`/api/analytics/events`** — the most recent raw rows for the log table.
-- **`/api/analytics/export.csv`** — streams the clickstream as CSV in the **exact Moodle
-  column order** from the reference spreadsheet.
+- **`/api/insights/events`** — the most recent raw rows for the log table.
+- **`/api/insights/export.csv`** (also `.xlsx` / `.json`) — streams the clickstream in the
+  **exact Moodle column order** from the reference spreadsheet.
+
+> Paths use `/api/ingest` and `/api/insights/*` (not `/api/events` or `/api/analytics/*`)
+> so browser ad-blockers don't block them with `ERR_BLOCKED_BY_CLIENT`.
 
 **Scope rule:** a `learner` sees only `WHERE user_id = <self>`; an `admin` sees everyone.
 This is enforced in the SQL, not the UI.
@@ -115,7 +118,7 @@ sequenceDiagram
   participant S as Server
   V->>T: play / pause / seeked / timeupdate
   T->>T: build event, push to queue
-  T-->>S: POST /api/events (batch)  // every few seconds
+  T-->>S: POST /api/ingest (batch)  // every few seconds
   Note over V,T: on 25/50/75% a "Video progress" event is logged once
   V->>T: (tab hidden) pagehide
   T-->>S: sendBeacon(final batch)

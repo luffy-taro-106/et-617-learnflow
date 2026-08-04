@@ -7,7 +7,7 @@
  *      (lesson viewed, video played, quiz answered, ...).
  *   3. Auto-capture generic interactions: page/route views, clicks,
  *      scroll depth, and time-on-page — with no per-element wiring.
- *   4. Queue events and flush them to POST /api/events in batches
+ *   4. Queue events and flush them to POST /api/ingest in batches
  *      (and reliably on page hide via navigator.sendBeacon).
  *
  * Every event carries the Moodle-style descriptive fields (component,
@@ -72,7 +72,9 @@
     if (!queue.length) return;
     const batch = queue.splice(0, queue.length);
     const body = JSON.stringify({ events: batch });
-    const url = '/api/events';
+    // NOTE: neutral path (not "/events" or "/track") so ad-blockers / privacy
+    // extensions don't block the clickstream write with ERR_BLOCKED_BY_CLIENT.
+    const url = '/api/ingest';
 
     if (useBeacon && navigator.sendBeacon) {
       navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));

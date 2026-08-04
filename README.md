@@ -100,7 +100,7 @@ Every event is stored with the Moodle columns **and** machine-readable fields
 
 - **`public/js/tracker.js`** is a small engine that: assigns a **session id**, exposes
   `Tracker.log(...)` for semantic events, **auto-captures** clicks / scroll / time-on-page,
-  **queues** events and **flushes them in batches** to `POST /api/events` (and reliably on
+  **queues** events and **flushes them in batches** to `POST /api/ingest` (and reliably on
   page-hide via `navigator.sendBeacon`).
 - The server enriches each event with the server-side **IP address** and the authenticated
   **user id**, then writes it to the `events` table.
@@ -136,7 +136,7 @@ The **`events`** table (the clickstream) — Moodle columns in **bold**:
 | url, payload | Client route + JSON detail (e.g. `{ "percent": 50 }`) |
 | created_at | Server insert time |
 
-Ready-made exports (`/api/analytics/export.csv`, `.xlsx`, `.json`) emit exactly the
+Ready-made exports (`/api/insights/export.csv`, `.xlsx`, `.json`) emit exactly the
 reference sheet's columns: `Time, User full name, Event context, Component, Event name,
 Description, Origin, IP address`. The Excel workbook is built with **zero external
 dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
@@ -156,12 +156,17 @@ dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
 | GET | `/api/lessons/:id` | — | One lesson (quiz answers stripped) |
 | POST | `/api/quiz/:lessonId/submit` | ✅ | Grade & store a quiz attempt |
 | GET | `/api/progress` | ✅ | Viewed lessons + best scores |
-| POST | `/api/events` | optional | **Ingest a batch of clickstream events** |
-| GET | `/api/analytics/summary` | ✅ | Aggregates (self, or all if admin) |
-| GET | `/api/analytics/events` | ✅ | Recent raw events |
-| GET | `/api/analytics/export.csv` | ✅ | Moodle-format CSV download |
-| GET | `/api/analytics/export.xlsx` | ✅ | Moodle-format Excel (.xlsx) download |
-| GET | `/api/analytics/export.json` | ✅ | Full clickstream as structured JSON |
+| POST | `/api/ingest` | optional | **Ingest a batch of clickstream events** |
+| GET | `/api/insights/summary` | ✅ | Aggregates (self, or all if admin) |
+| GET | `/api/insights/events` | ✅ | Recent raw events |
+| GET | `/api/insights/export.csv` | ✅ | Moodle-format CSV download |
+| GET | `/api/insights/export.xlsx` | ✅ | Moodle-format Excel (.xlsx) download |
+| GET | `/api/insights/export.json` | ✅ | Full clickstream as structured JSON |
+
+> ℹ️ The API uses neutral paths (`/api/ingest`, `/api/insights/*`) rather than
+> `/api/events` or `/api/analytics/*` **on purpose** — browser ad-blockers and privacy
+> extensions block URLs containing "analytics"/"events" (`ERR_BLOCKED_BY_CLIENT`), which
+> would otherwise break the dashboard for users who have such an extension enabled.
 
 ---
 
