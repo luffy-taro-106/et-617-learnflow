@@ -188,9 +188,13 @@ dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
 │   │   └── app.js     # hash router + all five screens
 │   └── media/         # locally-generated demo videos (offline-safe)
 ├── docs/
-│   ├── ARCHITECTURE.md   # design deep-dive + diagrams
-│   ├── DEMO_SCRIPT.md    # shot-by-shot demo-video script
-│   └── presentation.html # slide deck (open in a browser)
+│   ├── ARCHITECTURE.md     # design deep-dive + diagrams
+│   ├── DEMO_SCRIPT.md      # shot-by-shot demo-video script (live re-record)
+│   ├── VOICEOVER_SCRIPT.md # timed narration for learnflow-demo.mp4
+│   ├── learnflow-demo.mp4  # ready-made ~57s screen-tour of every feature
+│   ├── LearnFlow.pptx      # slide deck — editable PowerPoint
+│   ├── LearnFlow.pdf       # slide deck — 9-page PDF
+│   └── presentation.html   # slide deck — interactive (open in a browser)
 ├── data/              # SQLite db (git-ignored, created by seed)
 ├── package.json
 └── README.md
@@ -204,13 +208,14 @@ dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
 |---|---|
 | **GitHub repo (+ README)** | <https://github.com/luffy-taro-106/et-617-learnflow> |
 | **Demo video** | [`docs/learnflow-demo.mp4`](docs/learnflow-demo.mp4) — a ready-made ~57s screen-tour of every feature. Add narration with the [voice-over script](docs/VOICEOVER_SCRIPT.md). |
-| **Presentation** | [`docs/presentation.html`](docs/presentation.html) — open in any browser (arrow keys / `F` for fullscreen) or print to PDF. |
+| **Presentation** | [`docs/LearnFlow.pptx`](docs/LearnFlow.pptx) (editable PowerPoint) · [`docs/LearnFlow.pdf`](docs/LearnFlow.pdf) (9-page PDF) · [`docs/presentation.html`](docs/presentation.html) (interactive — arrow keys / `F` for fullscreen). |
 
 - **Demo video** — [`docs/learnflow-demo.mp4`](docs/learnflow-demo.mp4) is a real capture of
   the full workflow; read the timed [`docs/VOICEOVER_SCRIPT.md`](docs/VOICEOVER_SCRIPT.md)
   over it to finish the narration. (For a live re-recording instead, follow [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).)
-- **Presentation** — open [`docs/presentation.html`](docs/presentation.html) in any
-  browser (use arrow keys / `F` for fullscreen) or print it to PDF.
+- **Presentation** — [`docs/LearnFlow.pptx`](docs/LearnFlow.pptx) (editable PowerPoint) and
+  [`docs/LearnFlow.pdf`](docs/LearnFlow.pdf) (9-page PDF), plus the interactive
+  [`docs/presentation.html`](docs/presentation.html) (arrow keys / `F` for fullscreen).
 
 ---
 
