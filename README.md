@@ -194,6 +194,7 @@ dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
 │   ├── learnflow-demo.mp4  # ready-made ~57s screen-tour of every feature
 │   ├── LearnFlow.pptx      # slide deck — editable PowerPoint
 │   ├── LearnFlow.pdf       # slide deck — 9-page PDF
+│   ├── LearnFlow-Submission.pdf # one-page submission sheet (repo link)
 │   └── presentation.html   # slide deck — interactive (open in a browser)
 ├── data/              # SQLite db (git-ignored, created by seed)
 ├── package.json
