@@ -5,55 +5,91 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>LearnFlow — Presentation</title>
 <style>
+  /* ==== Neo-Brutalist "Study Hall" deck — matches the LearnFlow web app ==== */
   :root{
-    --bg:#0f1420; --panel:#171d2b; --ink:#e7ecf5; --muted:#9aa5b8;
-    --primary:#7c74ff; --accent:#c084fc; --border:#2a3345; --good:#34d399;
+    --paper:#fdf3e3; --surface:#ffffff; --surface-2:#fff5df;
+    --ink:#17130d; --muted:#6c5d47;
+    --primary:#4f46e5; --accent:#ffd23f; --pink:#ff5d8f; --green:#23c552; --blue:#38bdf8;
+    --bw:3px; --dot:rgba(23,19,13,0.07);
+    --sh2:6px 6px 0 var(--ink); --sh3:10px 10px 0 var(--ink);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
     font-family:'Inter',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(1200px 800px at 70% -10%,#1e2440,transparent),var(--bg);
     color:var(--ink); overflow:hidden;
+    background-color:var(--paper);
+    background-image:radial-gradient(var(--dot) 1.6px,transparent 1.6px);
+    background-size:22px 22px;
   }
+  h1,h2,h3{font-family:'Archivo Black','Arial Black','Helvetica Neue',Inter,sans-serif;letter-spacing:-0.02em;line-height:1.05}
+  .mono,.kicker,.pill,.foot,.node,td,th,code,.count,.hint,.nav button{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+
   .deck{height:100vh;display:grid;place-items:center}
   .slide{
-    display:none; width:min(960px,92vw); height:min(620px,88vh);
-    background:linear-gradient(180deg,var(--panel),#12172200);
-    border:1px solid var(--border); border-radius:20px; padding:52px 60px;
-    box-shadow:0 30px 80px rgba(0,0,0,.5); position:relative; overflow:auto;
+    display:none; width:min(980px,92vw); height:min(636px,88vh);
+    background:var(--surface); color:var(--ink);
+    border:var(--bw) solid var(--ink); border-radius:20px; padding:48px 56px;
+    box-shadow:var(--sh3); position:relative; overflow:auto;
   }
-  .slide.active{display:block; animation:fade .35s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem}
-  h1{font-size:3rem;line-height:1.1;margin:.2em 0}
-  h2{font-size:2rem;margin:.1em 0 .6em}
-  h3{font-size:1.15rem;color:var(--muted);font-weight:600}
-  p{color:var(--muted);font-size:1.05rem;line-height:1.6;margin:.5em 0}
-  ul{margin:.4em 0 .4em 1.1em;color:var(--ink)} li{margin:.5em 0;line-height:1.5}
-  .big{font-size:1.2rem}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-  .card{background:#1e2636;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
-  .card b{color:var(--primary)}
-  .pill{display:inline-block;background:#232b3d;border:1px solid var(--border);color:var(--ink);
-    padding:6px 14px;border-radius:20px;font-size:.9rem;margin:4px 6px 0 0}
-  .center{display:flex;flex-direction:column;justify-content:center;height:100%}
-  .tag{color:var(--good);font-weight:700}
-  code{background:#0d1017;border:1px solid var(--border);padding:2px 8px;border-radius:6px;color:#c9d3e6;font-size:.92em}
-  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
-  .node{background:#1e2636;border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-weight:600;font-size:.95rem}
-  .arrow{color:var(--accent);font-size:1.4rem}
-  .foot{position:absolute;bottom:18px;left:60px;right:60px;display:flex;justify-content:space-between;
-    color:var(--muted);font-size:.82rem;border-top:1px solid var(--border);padding-top:10px}
+  .slide.active{display:block; animation:fade .3s ease}
+  /* Always hide inactive slides — beats the .center display:flex rule below. */
+  .slide:not(.active){display:none !important}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .kicker{
+    display:inline-block; font-weight:800; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase;
+    background:var(--accent); color:var(--ink); border:2.5px solid var(--ink); border-radius:999px;
+    padding:6px 13px; box-shadow:3px 3px 0 var(--ink); transform:rotate(-2deg); margin-bottom:14px;
+  }
+  h1{font-size:3.1rem;margin:.1em 0 .2em;text-transform:uppercase}
+  h2{font-size:2.05rem;margin:.05em 0 .5em}
+  h3{font-size:1.15rem;color:var(--muted);font-weight:700;font-family:'Inter',sans-serif}
+  p{color:var(--muted);font-size:1.04rem;line-height:1.6;margin:.5em 0}
+  b{color:var(--ink)}
+  ul{list-style:none;margin:.5em 0;padding:0}
+  li{margin:.55em 0;line-height:1.45;padding-left:30px;position:relative;font-size:1.02rem}
+  li::before{content:'▸';position:absolute;left:4px;top:0;color:var(--primary);font-weight:900}
+  .big li{font-size:1.16rem}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  .card{background:var(--surface-2);border:var(--bw) solid var(--ink);border-radius:14px;padding:16px 18px;box-shadow:4px 4px 0 var(--ink)}
+  .card:nth-child(2){transform:rotate(0.6deg)}
+  .card b{display:block;margin-bottom:4px;font-size:1.02rem}
+  .card p{margin:0;font-size:.92rem}
+
+  .pill{
+    display:inline-block; background:var(--surface); color:var(--ink); border:2.5px solid var(--ink);
+    padding:6px 13px; border-radius:999px; font-size:.82rem; font-weight:700; margin:5px 6px 0 0; box-shadow:3px 3px 0 var(--ink);
+  }
+  .pill:nth-child(3n+1){background:var(--accent)} .pill:nth-child(3n+2){background:var(--blue)} .pill:nth-child(3n){background:var(--green)}
+
+  .center{flex-direction:column;justify-content:center;height:100%}
+  .slide.active.center{display:flex}
+  .tag{display:inline-block;background:var(--green);color:var(--ink);border:2.5px solid var(--ink);padding:2px 10px;border-radius:8px;font-weight:800}
+  code{background:var(--paper);border:2px solid var(--ink);padding:1px 7px;border-radius:6px;color:var(--ink);font-size:.9em;font-weight:700}
+
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .node{background:var(--surface-2);border:var(--bw) solid var(--ink);border-radius:12px;padding:11px 15px;font-weight:800;font-size:.9rem;box-shadow:4px 4px 0 var(--ink)}
+  .node small{color:var(--muted);font-weight:600}
+  .arrow{color:var(--primary);font-size:1.5rem;font-weight:900}
+
+  .foot{position:absolute;bottom:16px;left:56px;right:56px;display:flex;justify-content:space-between;
+    color:var(--muted);font-size:.74rem;font-weight:700;border-top:2.5px solid var(--ink);padding-top:9px;text-transform:uppercase;letter-spacing:.04em}
+
+  table{border-collapse:collapse;width:100%;margin-top:14px;font-size:.86rem}
+  th,td{border:2.5px solid var(--ink);padding:9px 11px;text-align:left}
+  th{background:var(--primary);color:#fff;text-transform:uppercase;font-size:.72rem;letter-spacing:.03em}
+  tr:nth-child(even) td{background:var(--surface-2)}
+
   .nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
-  .nav button{background:var(--panel);border:1px solid var(--border);color:var(--ink);
-    width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:1.1rem}
-  .nav button:hover{border-color:var(--primary)}
-  .count{position:fixed;top:16px;right:20px;color:var(--muted);font-size:.85rem}
-  .hint{position:fixed;bottom:20px;right:20px;color:var(--muted);font-size:.75rem}
-  table{border-collapse:collapse;width:100%;margin-top:12px;font-size:.9rem}
-  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left}
-  th{color:var(--accent)}
+  .nav button{background:var(--surface);border:var(--bw) solid var(--ink);color:var(--ink);
+    width:44px;height:44px;border-radius:11px;cursor:pointer;font-size:1.2rem;font-weight:900;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+  .nav button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+  .nav button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .count{position:fixed;top:16px;right:20px;background:var(--ink);color:var(--paper);padding:5px 12px;border-radius:999px;font-size:.8rem;font-weight:800}
+  .hint{position:fixed;bottom:22px;right:20px;color:var(--muted);font-size:.72rem;font-weight:700}
+  .logo{display:inline-grid;place-items:center;width:56px;height:56px;background:var(--accent);border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:var(--sh2);transform:rotate(-6deg);font-size:1.7rem;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -62,12 +98,13 @@
 
   <!-- 1 TITLE -->
   <section class="slide active center">
+    <span class="logo">🎓</span>
     <div class="kicker">ET-617 · Assignment</div>
-    <h1>🎓 LearnFlow</h1>
-    <h3>An interactive learning platform that turns every learner<br/>interaction into <span style="color:var(--primary)">clickstream data</span>.</h3>
-    <div class="flow">
+    <h1>LearnFlow</h1>
+    <h3>An interactive learning platform that turns every learner<br/>interaction into <b style="color:var(--primary)">clickstream data</b>.</h3>
+    <div style="margin-top:14px">
       <span class="pill">📖 Text</span><span class="pill">🎬 Video</span><span class="pill">✅ Quizzes</span>
-      <span class="pill">🖱️ Clickstream tracking</span><span class="pill">📊 Analytics</span><span class="pill">⬇ CSV export</span>
+      <span class="pill">🖱️ Clickstream</span><span class="pill">📊 Analytics</span><span class="pill">⬇ CSV · Excel · JSON</span>
     </div>
     <div class="foot"><span>LearnFlow</span><span>Node.js · Express · SQLite · Vanilla JS</span></div>
   </section>
@@ -96,7 +133,7 @@
       <div class="card"><b>Learners &amp; admins</b><p>Email + password auth (bcrypt, token sessions). Learners see their own data; admins see everyone's.</p></div>
       <div class="card"><b>Three content types</b><p>Rich reading, HTML5 video with live event capture, and server-graded multiple-choice quizzes.</p></div>
       <div class="card"><b>Full clickstream</b><p>Clicks, scroll depth, time-on-page, video play/pause/seek/progress, quiz start/answer/submit, auth.</p></div>
-      <div class="card"><b>Analytics + export</b><p>Live dashboard with charts and a raw log, plus one-click CSV in Moodle format.</p></div>
+      <div class="card"><b>Analytics + export</b><p>Live dashboard with charts and a raw log, plus one-click export as CSV, Excel or JSON.</p></div>
     </div>
     <div class="foot"><span>Solution</span><span>3 / 9</span></div>
   </section>
@@ -108,11 +145,11 @@
     <div class="flow">
       <span class="node">🌐 Vanilla-JS SPA</span>
       <span class="arrow">→</span>
-      <span class="node">tracker.js<br/><small style="color:var(--muted)">queue + sendBeacon</small></span>
+      <span class="node">tracker.js<br/><small>queue + sendBeacon</small></span>
       <span class="arrow">→</span>
-      <span class="node">Express API<br/><small style="color:var(--muted)">/api/ingest</small></span>
+      <span class="node">Express API<br/><small>/api/ingest</small></span>
       <span class="arrow">→</span>
-      <span class="node">🗄️ SQLite<br/><small style="color:var(--muted)">events table</small></span>
+      <span class="node">🗄️ SQLite<br/><small>events table</small></span>
     </div>
     <ul>
       <li>Frontend loads plain <code>.js</code>/<code>.css</code> — runs with a single <code>npm start</code>.</li>
@@ -128,12 +165,12 @@
     <h2>How the clickstream flows</h2>
     <ul>
       <li><b>Capture</b> — <code>tracker.js</code> auto-records clicks, scroll &amp; time-on-page, and exposes <code>Tracker.log()</code> for semantic events.</li>
-      <li><b>Batch</b> — events queue up and flush every few seconds, or via <code>navigator.sendBeacon</code> on tab-hide (no lost tail events).</li>
+      <li><b>Batch</b> — events queue up and flush every few seconds, or via <code>sendBeacon</code> on tab-hide (no lost tail events).</li>
       <li><b>Enrich</b> — the server stamps the real IP + authenticated user id.</li>
       <li><b>Store</b> — one indexed <code>events</code> row per interaction.</li>
-      <li><b>Read back</b> — aggregates, raw log, and CSV export (scoped per role).</li>
+      <li><b>Read back</b> — aggregates, raw log, and CSV/Excel/JSON export (scoped per role).</li>
     </ul>
-    <p class="tag">Every event carries both human-readable Moodle fields <i>and</i> machine fields (event_type, target_id, payload).</p>
+    <p><span class="tag">Every event</span> carries both human-readable Moodle fields <i>and</i> machine fields (event_type, target_id, payload).</p>
     <div class="foot"><span>Clickstream</span><span>5 / 9</span></div>
   </section>
 
@@ -144,7 +181,7 @@
     <table>
       <tr><th>Component</th><th>Example events</th></tr>
       <tr><td>Authentication</td><td>registered · logged in · logged out</td></tr>
-      <tr><td>System</td><td>Dashboard / Course / Analytics viewed</td></tr>
+      <tr><td>System</td><td>Dashboard / Course / Analytics viewed · exported</td></tr>
       <tr><td>Lesson</td><td>Lesson viewed · marked complete</td></tr>
       <tr><td>Video</td><td>played · paused · seeked · progress 25/50/75% · completed · volume · rate</td></tr>
       <tr><td>Quiz</td><td>started · answer selected · attempt submitted</td></tr>
@@ -157,7 +194,7 @@
   <section class="slide">
     <div class="kicker">Data</div>
     <h2>The <code>events</code> table = the clickstream</h2>
-    <p>Moodle-style columns drive the CSV export; rich columns drive analytics.</p>
+    <p>Moodle-style columns drive the export; rich columns drive analytics.</p>
     <div class="grid">
       <div class="card"><b>Moodle columns</b>
         <p>Time · Event context · Component · Event name · Description · Origin · IP address</p></div>
@@ -175,11 +212,11 @@
     <div class="kicker">Live demo</div>
     <h2>Let's see it</h2>
     <ul class="big">
-      <li>Log in → dashboard</li>
+      <li>Log in → dashboard with a progress ring &amp; live study timer</li>
       <li>Read a <b>text</b> lesson (scroll tracked)</li>
       <li>Watch a <b>video</b> — play / pause / seek logged live</li>
       <li>Take a <b>quiz</b> — instant colour-coded grading</li>
-      <li>Open <b>My Analytics</b> → charts + raw log → <b>Export CSV</b></li>
+      <li>Open <b>My Analytics</b> → charts + raw log → <b>Export</b></li>
     </ul>
     <p><code>npm install &amp;&amp; npm run seed &amp;&amp; npm start</code> → <code>localhost:3000</code></p>
     <div class="foot"><span>Demo</span><span>8 / 9</span></div>
@@ -190,11 +227,11 @@
     <div class="kicker">Wrap-up</div>
     <h2>Everything the brief asked — and then some</h2>
     <div class="grid">
-      <div class="card"><b>✅ Delivered</b><p>Learner auth · text/video/quiz · full clickstream · storage · analytics · CSV · Git history · docs.</p></div>
-      <div class="card"><b>➕ Extra polish</b><p>Admin analytics scope · light/dark theme · offline videos · batched beacon tracking · Moodle-exact export.</p></div>
+      <div class="card"><b>✅ Delivered</b><p>Learner auth · text/video/quiz · full clickstream · storage · analytics · CSV/Excel/JSON · Git history · docs.</p></div>
+      <div class="card"><b>➕ Extra polish</b><p>Admin analytics scope · neo-brutalist light/dark UI · offline videos · batched beacon tracking · Moodle-exact export.</p></div>
     </div>
     <p class="big">Repo includes <b>README</b>, <b>ARCHITECTURE.md</b>, this deck &amp; a demo-video script.</p>
-    <h1 style="font-size:2rem;margin-top:10px">Thank you 🎓</h1>
+    <h1 style="font-size:2rem;margin-top:12px">Thank you 🎓</h1>
     <div class="foot"><span>LearnFlow</span><span>9 / 9</span></div>
   </section>
 
