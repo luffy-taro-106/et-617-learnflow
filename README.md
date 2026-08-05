@@ -203,11 +203,12 @@ dependencies** (a tiny OOXML/ZIP writer in [`server/xlsx.js`](server/xlsx.js)).
 | Deliverable | Where |
 |---|---|
 | **GitHub repo (+ README)** | <https://github.com/luffy-taro-106/et-617-learnflow> |
-| **Demo video** | _Add your recording link here_ — record by following [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) (a 2–3 minute walkthrough). |
+| **Demo video** | [`docs/learnflow-demo.mp4`](docs/learnflow-demo.mp4) — a ready-made ~57s screen-tour of every feature. Add narration with the [voice-over script](docs/VOICEOVER_SCRIPT.md). |
 | **Presentation** | [`docs/presentation.html`](docs/presentation.html) — open in any browser (arrow keys / `F` for fullscreen) or print to PDF. |
 
-- **Demo video** — follow [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) (a 2–3 minute
-  walkthrough script) while screen-recording the running app, then paste the share link above.
+- **Demo video** — [`docs/learnflow-demo.mp4`](docs/learnflow-demo.mp4) is a real capture of
+  the full workflow; read the timed [`docs/VOICEOVER_SCRIPT.md`](docs/VOICEOVER_SCRIPT.md)
+  over it to finish the narration. (For a live re-recording instead, follow [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).)
 - **Presentation** — open [`docs/presentation.html`](docs/presentation.html) in any
   browser (use arrow keys / `F` for fullscreen) or print it to PDF.
 
